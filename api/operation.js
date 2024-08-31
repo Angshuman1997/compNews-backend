@@ -27,15 +27,11 @@ async function fetchNews(req, res) {
 
     const { newsData, dataDate } = await getCollections();
 
-    const [dateInfo] = await dataDate.find().toArray();
+    const dateInfo = await dataDate.findOne();
     const existingNews = await newsData.find().toArray();
 
     if (dateInfo) {
-      const {
-        date: dateInfoDate,
-        _id: dateInfoId,
-        version: dateInfoVersion,
-      } = dateInfo;
+      const { date: dateInfoDate, _id: dateInfoId, version: dateInfoVersion } = dateInfo;
       if (currentDate > dateInfoDate) {
         const fetchedData = await fetchData();
         if (fetchedData.success) {
@@ -62,9 +58,11 @@ async function fetchNews(req, res) {
       await dataDate.insertOne({ date: currentDate, version: 1 });
     }
 
-    const newsDatas = await newsData.find(
-      {},
-      {
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = parseInt(req.query.offset) || 0;
+
+    const newsDatas = await newsData
+      .find({}, {
         projection: {
           headline: 1,
           shorterHeadline: 1,
@@ -72,12 +70,14 @@ async function fetchNews(req, res) {
           url: 1,
           featuredMedia: 1,
         },
-      }
-    );
+      })
+      .sort({ _id: -1 })
+      .skip(offset)
+      .limit(limit)
+      .toArray();
 
     return res.status(200).json({
       success: true,
-      status: 200,
       data: newsDatas,
       message: "Success",
     });
@@ -86,7 +86,6 @@ async function fetchNews(req, res) {
 
     return res.status(500).json({
       success: false,
-      status: 500,
       data: [],
       message: "Something went wrong!",
       error: error.message,
@@ -101,13 +100,15 @@ async function searchNews(req, res) {
     if (!query) {
       return res.status(400).json({
         success: false,
-        status: 400,
         data: [],
         message: "Query parameter is required",
       });
     }
 
     const { newsData } = await getCollections();
+
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = parseInt(req.query.offset) || 0;
 
     const searchResults = await newsData
       .find({
@@ -124,11 +125,13 @@ async function searchNews(req, res) {
           featuredMedia: 1,
         },
       })
+      .sort({ _id: -1 })
+      .skip(offset)
+      .limit(limit)
       .toArray();
 
     return res.status(200).json({
       success: true,
-      status: 200,
       data: searchResults,
       message: "Search results retrieved successfully",
     });
@@ -137,7 +140,6 @@ async function searchNews(req, res) {
 
     return res.status(500).json({
       success: false,
-      status: 500,
       data: [],
       message: "Something went wrong!",
       error: error.message,
