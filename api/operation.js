@@ -69,6 +69,7 @@ async function fetchNews(req, res) {
           shortDateLastPublished: 1,
           url: 1,
           featuredMedia: 1,
+          promoImage: 1
         },
       })
       .sort({ _id: -1 })
@@ -123,6 +124,7 @@ async function searchNews(req, res) {
           shortDateLastPublished: 1,
           url: 1,
           featuredMedia: 1,
+          promoImage: 1
         },
       })
       .sort({ _id: -1 })
