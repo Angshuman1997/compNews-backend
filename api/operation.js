@@ -46,7 +46,7 @@ async function fetchNews(req, res) {
           if (newNewsData.length > 0) {
             const newNewsDataWithTimestamp = newNewsData.map((item) => ({
               ...item,
-              createdAt: new Date(), // Add the current date as createdAt
+              createdAt: new Date(),
             }));
 
             await newsData.insertMany(newNewsDataWithTimestamp);
@@ -88,11 +88,18 @@ async function fetchNews(req, res) {
       .skip(offset)
       .limit(limit)
       .toArray();
+    
+    let hasMore = true;
+    const allNews = await newsData.find().toArray();
+    if(allNews.length < offset) {
+      hasMore = false;
+    }
 
     return res.status(200).json({
       success: true,
       data: newsDatas,
       message: "Success",
+      hasMore: hasMore,
     });
   } catch (error) {
     console.error("Error in fetchNews:", error.message);
@@ -147,10 +154,17 @@ async function searchNews(req, res) {
       .limit(limit)
       .toArray();
 
+    let hasMore = true;
+    const allNews = await newsData.find().toArray();
+    if(allNews.length < offset) {
+      hasMore = false;
+    }
+
     return res.status(200).json({
       success: true,
       data: searchResults,
       message: "Search results retrieved successfully",
+      hasMore: hasMore,
     });
   } catch (error) {
     console.error("Error in searchNews:", error.message);
