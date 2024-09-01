@@ -155,7 +155,12 @@ async function searchNews(req, res) {
       .toArray();
 
     let hasMore = true;
-    const allNews = await newsData.find().toArray();
+    const allNews = await newsData.find({
+      $or: [
+        { headline: { $regex: query, $options: "i" } },
+        { description: { $regex: query, $options: "i" } },
+      ],
+    }).toArray();
     if(allNews.length < offset) {
       hasMore = false;
     }
