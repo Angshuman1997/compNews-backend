@@ -88,18 +88,14 @@ async function fetchNews(req, res) {
       .skip(offset)
       .limit(limit)
       .toArray();
-    
-    let hasMore = true;
-    const allNews = await newsData.find().toArray();
-    if(allNews.length < offset) {
-      hasMore = false;
-    }
 
+    const allNews = await newsData.find().toArray();
+    
     return res.status(200).json({
       success: true,
+      total: allNews.length,
       data: newsDatas,
       message: "Success",
-      hasMore: hasMore,
     });
   } catch (error) {
     console.error("Error in fetchNews:", error.message);
@@ -154,22 +150,18 @@ async function searchNews(req, res) {
       .limit(limit)
       .toArray();
 
-    let hasMore = true;
     const allNews = await newsData.find({
       $or: [
         { headline: { $regex: query, $options: "i" } },
         { description: { $regex: query, $options: "i" } },
       ],
     }).toArray();
-    if(allNews.length < offset) {
-      hasMore = false;
-    }
 
     return res.status(200).json({
       success: true,
+      total: allNews.length,
       data: searchResults,
       message: "Search results retrieved successfully",
-      hasMore: hasMore,
     });
   } catch (error) {
     console.error("Error in searchNews:", error.message);
